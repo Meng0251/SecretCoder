@@ -1,181 +1,42 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <title>中文加密解碼工具</title>
-  <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.11.1/tsparticles.bundle.min.js"></script>
-  <style>
-    html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-      background: #0d0d0d;
-      font-family: 'Courier New', monospace;
-      color: #0f0;
-      overflow-y: auto;
-      overflow-x: hidden;
-    }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sp.Code：簡單好用的密碼工具</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Apple 裝置用圖示 -->
+<link rel="apple-touch-icon" href="apple-icon.png">
 
-    #tsparticles {
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: -1;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-    }
-
-    .container {
-      max-width: 700px;
-      margin: 60px auto;
-      background: rgba(20, 20, 20, 0.9);
-      border: 2px solid #0f0;
-      border-radius: 12px;
-      padding: 30px;
-      box-shadow: 0 0 20px #0f0;
-      position: relative;
-      z-index: 1;
-    }
-
-    input, textarea, button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      margin-bottom: 20px;
-      background: #111;
-      color: #0f0;
-      border: 1px solid #0f0;
-      border-radius: 6px;
-      resize: vertical;
-    }
-
-    button {
-      background: #0f0;
-      color: #000;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    button:hover {
-      background: #aaffaa;
-    }
-
-    .copy-btn {
-      width: auto;
-      margin-left: 10px;
-      padding: 6px 10px;
-      background: #0f0;
-      color: #111;
-      border-radius: 4px;
-    }
-
-    label {
-      font-weight: bold;
-      display: block;
-      margin-top: 10px;
-    }
-
-    @media screen and (max-width: 768px) {
-      .container {
-        margin: 30px 15px;
-        padding: 20px;
-      }
-    }
-  </style>
+<!-- Android 裝置與桌面 -->
+<link rel="icon" sizes="192x192" href="icon.png">
 </head>
 <body>
-  <div id="tsparticles"></div>
-
+  <canvas id="bg"></canvas>
   <div class="container">
-    <h1>🔐 中文加密解碼工具</h1>
+    <h1>🔐 Sp.Code：簡單好用的密碼工具</h1>
+    <label for="mode">選擇模式：</label>
+    <select id="mode">
+      <option value="base64">Base64</option>
+      <option value="xor">XOR（需密碼）</option>
+      <option value="caesar">凱撒加密（位移）</option>
+      <option value="mix">混合加密（Base64 + XOR）</option>
+    </select>
 
-    <label>密碼（自訂）</label>
-    <input id="key" placeholder="請輸入密碼（例如：abc123）">
+    <label for="key">密碼 / 位移數：</label>
+    <input type="text" id="key" placeholder="可選填" />
 
-    <label>原始文字</label>
-    <textarea id="plaintext" rows="4" placeholder="請輸入要加密的中文"></textarea>
-    <button onclick="encrypt()">🔐 加密</button>
+    <label for="input">輸入文字：</label>
+    <textarea id="input" rows="3"></textarea>
 
-    <label>加密後的密文
-      <button class="copy-btn" onclick="copyText('ciphertext')">複製</button>
-    </label>
-    <textarea id="ciphertext" rows="4" readonly></textarea>
+    <button onclick="encrypt()">加密</button>
+    <button onclick="decrypt()">解密</button>
 
-    <label>要解碼的密文</label>
-    <textarea id="cipherInput" rows="4" placeholder="請輸入要解碼的密文"></textarea>
-    <button onclick="decrypt()">🔓 解密</button>
-
-    <label>解碼後的原文
-      <button class="copy-btn" onclick="copyText('decrypted')">複製</button>
-    </label>
-    <textarea id="decrypted" rows="4" readonly></textarea>
+    <label for="output">結果：</label>
+    <textarea id="output" rows="3" readonly></textarea>
+    <button onclick="copyResult()">複製結果</button>
   </div>
 
-  <script>
-    function xorEncrypt(str, key) {
-      let result = '';
-      for (let i = 0; i < str.length; i++) {
-        result += String.fromCharCode(str.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-      }
-      return result;
-    }
-
-    function encrypt() {
-      const key = document.getElementById('key').value;
-      const plaintext = document.getElementById('plaintext').value;
-      if (!key || !plaintext) return alert('請輸入密碼與原始文字');
-
-      const base64 = btoa(unescape(encodeURIComponent(plaintext)));
-      const encrypted = xorEncrypt(base64, key);
-      const encryptedBase64 = btoa(encrypted);
-      document.getElementById('ciphertext').value = encryptedBase64;
-    }
-
-    function decrypt() {
-      const key = document.getElementById('key').value;
-      const cipherBase64 = document.getElementById('cipherInput').value;
-      if (!key || !cipherBase64) return alert('請輸入密碼與密文');
-
-      try {
-        const decoded = atob(cipherBase64);
-        const decrypted = xorEncrypt(decoded, key);
-        const finalText = decodeURIComponent(escape(atob(decrypted)));
-        document.getElementById('decrypted').value = finalText;
-      } catch (e) {
-        alert('解密失敗，請確認密碼與密文正確');
-      }
-    }
-
-    function copyText(id) {
-      const textarea = document.getElementById(id);
-      textarea.select();
-      document.execCommand('copy');
-      alert('已複製到剪貼簿');
-    }
-
-    tsParticles.load("tsparticles", {
-      fullScreen: { enable: false },
-      background: { color: "#0d0d0d" },
-      particles: {
-        number: { value: 80 },
-        size: { value: 3 },
-        color: { value: "#0f0" },
-        links: { enable: true, color: "#0f0" },
-        move: { enable: true, speed: 1 },
-      },
-      interactivity: {
-        events: {
-          onClick: { enable: true, mode: "push" },
-          onHover: { enable: true, mode: "repulse" }
-        },
-        modes: {
-          push: { quantity: 4 },
-          repulse: { distance: 100 }
-        }
-      }
-    });
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
